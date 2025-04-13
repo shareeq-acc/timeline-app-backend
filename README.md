@@ -70,7 +70,7 @@ JWT_REFRESH_EXPIRY=7d
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/timeline-application.git
+git clone https://github.com/shareeq-acc/timeline-app-backend
 cd timeline-application
 ```
 
@@ -97,6 +97,8 @@ yarn dev
 
 ## API Endpoints
 
+Full Api Documentation: [Api Documentation](https://frost-petroleum-f94.notion.site/API-Documentation-Timeline-App-1b06b12c876680388e5ecbe541130a30) 
+
 ### Authentication
 - `POST /api/auth/register` - Register a new user
 - `POST /api/auth/login` - Login user
@@ -108,7 +110,7 @@ yarn dev
 - `GET /api/timelines/:id` - Get timeline by ID
 - `POST /api/timelines/:id/fork` - Fork a timeline
 
-### Segments
+### Segments(not implemented currently. in progress)
 - `POST /api/timelines/:timelineId/segments` - Create a new segment
 - `GET /api/timelines/:timelineId/segments` - Get timeline segments
 - `PUT /api/segments/:id` - Update segment
@@ -138,12 +140,8 @@ src/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter)
-
-Project Link: [https://github.com/yourusername/timeline-application](https://github.com/yourusername/timeline-application) 
+Project Link: [TimeLine Application](https://github.com/shareeq-acc/timeline-app-backend) 
