@@ -40,7 +40,7 @@ export class TimelineTypeRepository {
                 return cachedData;
             }
 
-            const query = 'SELECT * FROM timeline_types ORDER BY code';
+            const query = 'SELECT * FROM timeline_types';
             const result = await pool.query(query);
             const timelineTypes = result.rows.map(row => mapDbRowToTimelineType(row));
             
