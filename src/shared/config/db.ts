@@ -4,18 +4,18 @@ import { allTables } from '../../tables/tables';
 
 
 // Option 1 for database connection
-// export const pool = new Pool({
-//   connectionString: process.env.DATABASE_URL as string,
-// });
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL as string,
+});
 
 // Option 2 for database connection
-export const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-});
+// export const pool = new Pool({
+//   host: process.env.DB_HOST,
+//   port: Number(process.env.DB_PORT),
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASS,
+//   database: process.env.DB_NAME,
+// });
 
 export const initializeDatabase = async () => {
   try {
