@@ -10,6 +10,7 @@ export const timelineTypesSql : Table = {
           needs_time_unit BOOLEAN NOT NULL DEFAULT false,
           needs_duration BOOLEAN NOT NULL DEFAULT false,
           supports_scheduling BOOLEAN NOT NULL DEFAULT false,
+          supports_generation BOOLEAN NOT NULL DEFAULT false,
           is_subscribable BOOLEAN NOT NULL DEFAULT false,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -18,10 +19,10 @@ export const timelineTypesSql : Table = {
     dummyData: {
       checkSql: `SELECT COUNT(*) FROM timeline_types;`,
       insertSql: `
-         INSERT INTO timeline_types (type, description, needs_time_unit, needs_duration, supports_scheduling, is_subscribable)
+         INSERT INTO timeline_types (type, description, needs_time_unit, needs_duration, supports_scheduling, supports_generation,  is_subscribable)
             VALUES 
-              ('ROADMAP', 'Structured timeline based on fixed units (like days, weeks, months).', true, true, true, false),
-              ('CHRONICLE', 'Free-form documentation timeline, recording events as they happen.', false, false, false, true);
+              ('ROADMAP', 'Structured timeline based on fixed units (like days, weeks, months).', true, true, true, true, false),
+              ('CHRONICLE', 'Free-form documentation timeline, recording events as they happen.', false, false, false, false, true);
         `,
     }
 }

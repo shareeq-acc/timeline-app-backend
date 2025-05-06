@@ -74,26 +74,28 @@ export class UserService {
    * @param credits New credits value
    * @returns Updated User or null if not found
    */
-  //   async updateCredits(userId: string, credits: number): Promise<User | null> {
-  //     try {
-  //       const query = `
-  //         UPDATE users
-  //         SET credits = $1, updated_at = CURRENT_TIMESTAMP
-  //         WHERE id = $2
-  //         RETURNING id, fname, lname, username, email, password, occupation, credits, created_at, updated_at
-  //       `;
-  //       const result = await User.pool.query(query, [credits, userId]);
-  //       if (result.rows.length === 0) {
-  //         logger.warn('User not found for credits update', { userId });
-  //         return null;
-  //       }
-  //       logger.info('User credits updated', { userId, credits });
-  //       return result.rows[0] as User;
-  //     } catch (error) {
-  //       logger.error('Error updating user credits', { error, userId });
-  //       throw new Error('Failed to update user credits');
-  //     }
-  //   }
+    async updateCredits(userId: string, credits: number): Promise<UserPublicProps | null> {
+      const userExist = await this.getUserById(userId);
+      if(!userExist){
+        throw new AppError(
+          ERROR_CODES.NOT_FOUND.httpStatus,
+          ERROR_CODES.NOT_FOUND.code,
+          ERROR_CODES.NOT_FOUND.message,
+          "User not found"
+        )
+      }
+      const updatedUser = await UserRepository.updateCredits(userId, credits);
+      if(!updatedUser){
+        throw new AppError(
+          ERROR_CODES.INTERNAL_SERVER_ERROR.httpStatus,
+          ERROR_CODES.INTERNAL_SERVER_ERROR.code,
+          ERROR_CODES.INTERNAL_SERVER_ERROR.message,
+          "Failed to update credits"
+        )
+      }
+      return mapUserToUserResponse(updatedUser)
+    
+    }
 
   async getUserById(id: string): Promise<UserPublicProps | null> {
     try {

@@ -211,6 +211,21 @@ export class TimelineService {
         }
     }
 
+    async updateTimelineGeneration(timelineId: string, userId: string): Promise<boolean> {
+       const timeline = await TimelineRepository.findById(timelineId);
+       if(!timeline){
+        throw new AppError(
+          ERROR_CODES.NOT_FOUND.httpStatus,
+          ERROR_CODES.NOT_FOUND.code,
+          ERROR_CODES.NOT_FOUND.message,
+          'Timeline not found'
+        )
+       }
+       this.checkTimelineAccess(timeline, userId);
+       await TimelineRepository.markAsGenerated(timelineId);
+       return true;
+    }
+
     async getTimelineById(timelineId: string, userId: string = ""): Promise<TimelineResponseDto> {
         try {
             const timeline = await TimelineRepository.findById(timelineId);
@@ -291,6 +306,76 @@ export class TimelineService {
             return newTimeline;
         });
     }
+
+    async searchTimelines(
+        searchTerm: string,
+        page: number = 1,
+        limit: number = 10
+    ): Promise<GetTimelinesResponseDto> {
+        try {
+            const { timelines, total } = await TimelineRepository.search(searchTerm, page, limit);
+            
+            const timelineTypes = await TimelineTypeRepository.findAllExtended();
+            const timeUnits = await TimeUnitRepository.findAllExtended();
+
+            const mappedTimelines = await Promise.all(
+                timelines.map(timeline =>
+                    this.enrichTimeline(timeline, false, {
+                        timelineTypes,
+                        timeUnits,
+                    })
+                )
+            );
+
+            return {
+                timelines: mappedTimelines,
+                total,
+                page,
+                limit,
+            };
+        } catch (error) {
+            logger.error('Error in searchTimelines service', { error });
+            throw error;
+        }
+    }
+
+    async exploreTimelines(
+        page: number = 1,
+        limit: number = 10
+    ): Promise<{ [key: string]: GetTimelinesResponseDto }> {
+        try {
+            const timelineTypes = await TimelineTypeRepository.findAllExtended();
+            const timeUnits = await TimeUnitRepository.findAllExtended();
+            
+            const timelinesByType: { [key: string]: GetTimelinesResponseDto } = {};
+            
+            for (const type of timelineTypes) {
+                const { timelines, total } = await TimelineRepository.findByType(type.id, page, limit);
+                
+                const mappedTimelines = await Promise.all(
+                    timelines.map(timeline =>
+                        this.enrichTimeline(timeline, false, {
+                            timelineTypes,
+                            timeUnits,
+                        })
+                    )
+                );
+
+                timelinesByType[type.type] = {
+                    timelines: mappedTimelines,
+                    total,
+                    page,
+                    limit,
+                };
+            }
+
+            return timelinesByType;
+        } catch (error) {
+            logger.error('Error in exploreTimelines service', { error });
+            throw error;
+        }
+    }
+
 }
 
 export const timelineService = new TimelineService(); 

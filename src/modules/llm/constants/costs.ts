@@ -1,0 +1,1 @@
+export const SEGMENT_GENERATION_COST = 6;

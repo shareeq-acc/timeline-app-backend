@@ -87,4 +87,82 @@ export class TimelineRepository {
         const timelines = result.rows.map(mapDbRowToTimeline);
         return { timelines, total };
     }
+
+  static async markAsGenerated(timelineId: string): Promise<boolean> {
+    try {
+      const query = `
+        UPDATE timelines 
+        SET is_generated = true, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING *
+      `;
+      const result = await pool.query(query, [timelineId]);
+      return result.rows[0] ? true : false;
+    } catch (error) {
+      logger.error('Error marking timeline as generated', { error, timelineId });
+      return false;
+    }
+  }
+
+  static async search(
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ timelines: TimelineDbRow[]; total: number }> {
+    const offset = (page - 1) * limit;
+    
+    const countQuery = `
+      SELECT COUNT(*) 
+      FROM timelines 
+      WHERE (title ILIKE $1 OR description ILIKE $1)
+    `;
+    const countResult = await pool.query<{ count: string }>(countQuery, [`%${searchTerm}%`]);
+    const total = parseInt(countResult.rows[0].count);
+
+    const query = `
+      SELECT t.*, u.username AS author_username
+      FROM timelines t
+      JOIN users u ON t.author_id = u.id
+      WHERE (t.title ILIKE $1 OR t.description ILIKE $1)
+      ORDER BY t.created_at DESC 
+      LIMIT $2 OFFSET $3
+    `;
+    const result = await pool.query<TimelineDbRow>(query, [`%${searchTerm}%`, limit, offset]);
+    
+    return { 
+      timelines: result.rows.map(mapDbRowToTimeline),
+      total 
+    };
+  }
+
+  static async findByType(
+    typeId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ timelines: TimelineDbRow[]; total: number }> {
+    const offset = (page - 1) * limit;
+    
+    const countQuery = `
+      SELECT COUNT(*) 
+      FROM timelines 
+      WHERE type_id = $1 AND is_public = true
+    `;
+    const countResult = await pool.query<{ count: string }>(countQuery, [typeId]);
+    const total = parseInt(countResult.rows[0].count);
+
+    const query = `
+      SELECT t.*, u.username AS author_username
+      FROM timelines t
+      JOIN users u ON t.author_id = u.id
+      WHERE t.type_id = $1 AND t.is_public = true
+      ORDER BY t.created_at DESC 
+      LIMIT $2 OFFSET $3
+    `;
+    const result = await pool.query<TimelineDbRow>(query, [typeId, limit, offset]);
+    
+    return { 
+      timelines: result.rows.map(mapDbRowToTimeline),
+      total 
+    };
+  }
 } 

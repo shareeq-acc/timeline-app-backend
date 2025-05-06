@@ -83,4 +83,42 @@ export const forkTimeline = async (
     const forkedTimelineIdentification = await timelineService.forkTimeline(timelineId, userId);
     const forkedTimeline = await timelineService.getTimelineById(forkedTimelineIdentification.timelineId, userId)
     sendSuccess(res, forkedTimeline, 'Timeline forked successfully');
+};
+
+/**
+ * Search timelines
+ * @route GET /api/timelines/search
+ * @param req Request with search term and pagination
+ * @param res Response with matching timelines
+ */
+export const searchTimelines = async (
+    req: Request<{}, ApiResponse<GetTimelinesResponseDto>, {}, { value: string; page?: string; limit?: string }>,
+    res: Response<ApiResponse<GetTimelinesResponseDto>>
+) => {
+    const searchTerm = req.query.value || "";
+    const page = parseInt(req.query.page || '1');
+    const limit = parseInt(req.query.limit || '10');
+
+
+
+    const timelines = await timelineService.searchTimelines(searchTerm, page, limit);
+    sendSuccess(res, timelines, 'Timelines retrieved successfully');
+};
+
+/**
+ * Explore timelines grouped by type
+ * @route GET /api/timelines/explore
+ * @param req Request with pagination parameters
+ * @param res Response with timelines grouped by type
+ */
+export const exploreTimelines = async (
+    req: Request<{}, ApiResponse<{ [key: string]: GetTimelinesResponseDto }>, {}, { page?: string; limit?: string }>,
+    res: Response<ApiResponse<{ [key: string]: GetTimelinesResponseDto }>>
+) => {
+    const page = parseInt(req.query.page || '1');
+    const limit = parseInt(req.query.limit || '10');
+
+    const timelines = await timelineService.exploreTimelines(page, limit);
+    sendSuccess(res, timelines, 'Timelines retrieved successfully');
 }; 
+

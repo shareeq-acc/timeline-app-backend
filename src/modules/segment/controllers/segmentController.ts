@@ -3,6 +3,7 @@ import { CreateSegmentRequestDto, UpdateSegmentRequestDto, SegmentResponseDto, G
 import { ApiResponse } from '../../../shared/types/responseTypes';
 import { sendSuccess } from '../../../shared/utils/successHandler';
 import { segmentService } from '../services/segmentServices';
+import { GenerateSegmentsRequestDto } from '../../llm/dtos/dtos';
 
 export const createSegment = async (
     req: Request<{}, ApiResponse<SegmentResponseDto>, CreateSegmentRequestDto>,
@@ -92,4 +93,14 @@ export const setScheduleDate = async (
     const scheduleDate = req.body.scheduleDate || "";
     const segment = await segmentService.updateSegmentScheduleDate(segmentId, scheduleDate, userId);
     sendSuccess(res, segment, 'Schedule date set successfully');
+}
+
+export const generateSegments = async (
+    req: Request<{ timelineId: string }, ApiResponse<SegmentExtendedDto[]>, GenerateSegmentsRequestDto>,
+    res: Response<ApiResponse<SegmentExtendedDto[]>>
+) => {
+    const userId = req.user || "";
+    const timelineId = req.params.timelineId;
+    const segments = await segmentService.generateSegments(timelineId, userId, req.body);
+    sendSuccess(res, segments, 'Segments generated successfully');
 }

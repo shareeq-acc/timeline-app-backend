@@ -41,6 +41,22 @@ export class UserRepository {
     return mapDbRowToUser(result.rows[0]);
   }
 
+  static async updateCredits(userId: string, newCredits: number): Promise<UserType | null> {
+    try {
+      const query = `
+        UPDATE users 
+        SET credits = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING id, fname, lname, username, email, credits, created_at, updated_at
+      `;
+      const result = await pool.query(query, [userId, newCredits]);
+      return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
+    } catch (error) {
+      logger.error('Error updating credits', { error, userId });
+      return null;
+    }
+  }
+
   static async findById(id: string): Promise<UserType | null> {
     try {
       const query = 'SELECT * FROM users WHERE id = $1';
@@ -51,4 +67,6 @@ export class UserRepository {
       return null;
     }
   }
+
+
 } 

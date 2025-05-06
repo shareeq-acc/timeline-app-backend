@@ -46,14 +46,24 @@ const validateScheduleSegmentSchema = z.object({
         .refine((val) => new Date(val) >= new Date(), { message: 'Schedule date must be in the future' }),
 });
 
+
+const generateSegmentsSchema = z.object({
+    goal: z.string().min(1, 'Goal is required'),
+    domain: z.string().optional(),
+    skillLevel: z.string().optional(),
+    targetAudience: z.string().optional(),
+});
+
 // Type inference from schemas
 export type CreateSegmentSchema = z.infer<typeof createSegmentSchema>;
 export type UpdateSegmentSchema = z.infer<typeof updateSegmentSchema>;
 export type BulkCreateSegmentSchema = z.infer<typeof createBulkSegmentsSchema>;
+export type GenerateSegmentsSchema = z.infer<typeof generateSegmentsSchema>;
 
 export const dataValidation = {
     validateCreateSegment: validateBody(createSegmentSchema),
     validateUpdateSegment: validateBody(updateSegmentSchema),
     validateBulkSegments: validateBody(createBulkSegmentsSchema),
     validateScheduleSegment: validateBody(validateScheduleSegmentSchema),
+    validateGenerateSegments: validateBody(generateSegmentsSchema),
 };

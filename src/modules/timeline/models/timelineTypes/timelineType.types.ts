@@ -7,7 +7,9 @@ export interface TimelineTypeProps extends TimelineTypeDto {
     description: string;
     needsTimeUnit: boolean;
     needsDuration: boolean;
-    supportsScheduling: boolean;    
+    supportsScheduling: boolean;  
+    supportGeneration:boolean;  
+    isSubscribable:boolean;
     createdAt: string;
     updatedAt: string;
 }

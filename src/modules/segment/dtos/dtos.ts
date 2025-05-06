@@ -37,7 +37,14 @@ export interface CreateBulkSegmentsResponseDto {
     segments: Omit<SegmentResponseDto, 'timelineId'>[];
 }
 
-export type UpdateSegmentRequestDto = Partial<SegmentResponseDto>;
+export interface UpdateSegmentRequestDto{
+    timelineId: string;
+    unitNumber: number;
+    title?: string;
+    goals?: SegmentGoalResponseDto[];
+    references?: SegmentReferenceResponseDto[];
+    milestone?: string;
+} 
 
 export interface GetSegmentsResponseDto {
     segments: SegmentResponseDto[];

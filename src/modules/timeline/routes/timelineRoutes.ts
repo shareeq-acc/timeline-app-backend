@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { dataValidation } from '../validations/dataValidation';
-import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline } from '../controllers/timelineController';
+import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline, searchTimelines, exploreTimelines } from '../controllers/timelineController';
 import { authMiddleware } from '../../../shared/middleware/authMiddleware';
 import { validateTimelineBusinessRules } from '../validations/customTimelineValidations';
 
@@ -9,6 +9,12 @@ const router = Router();
 
 // Get metadata
 router.get('/metadata', getMetadata);
+
+// Search timelines
+router.get('/search', searchTimelines);
+
+// Explore timelines
+router.get('/explore', exploreTimelines);
 
 // Create a new timeline
 router.post('/', authMiddleware.requireAuth, dataValidation.validateCreateTimeline, validateTimelineBusinessRules, createTimeline);
@@ -26,5 +32,6 @@ router.get('/user/:userId', authMiddleware.optionalAuth, getTimelinesByAuthorId)
 
 // Fork a timeline
 router.post('/fork/:timelineId', authMiddleware.requireAuth, forkTimeline);
+
 
 export default router; 

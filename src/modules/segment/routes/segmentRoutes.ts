@@ -8,7 +8,8 @@ import {
     deleteSegment,
     createBulkSegments,
     markSegmentComplete,
-    setScheduleDate
+    setScheduleDate,
+    generateSegments
 } from '../controllers/segmentController';
 import { dataValidation } from '../validations/dataValidation';
 
@@ -47,4 +48,11 @@ router.post(
     setScheduleDate
 );
 
+// Generate segments
+router.post(
+    '/generate/:timelineId',
+    authMiddleware.requireAuth,
+    dataValidation.validateGenerateSegments,
+    generateSegments
+);
 export default router; 

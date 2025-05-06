@@ -10,6 +10,11 @@ import { withTransaction } from '../../../shared/db/withTransaction';
 import { SegmentRepository } from '../models/Segment/SegmentRepository';
 import { SegmentScheduleRepository } from '../models/SegmentSchedule/SegmentScheduleRepository';
 import { SegmentSchedulingProps } from '../models/SegmentSchedule/segmentSchedule.type';
+import { GenerateSegmentsRequestDto, GenerateSegmentsRequirements } from '../../llm/dtos/dtos';
+import { llmServices } from '../../llm/services/llmServices';
+import { userService } from '../../user/services/userServices';
+import { SegmentGoalRepository } from '../models/SegmentGoal/SegmentGoalRepository';
+import { SegmentReferenceRepository } from '../models/SegmentReference/SegmentReferenceRepository';
 
 export class SegmentService {
 
@@ -206,6 +211,8 @@ export class SegmentService {
                     'Failed to update segment'
                 );
             }
+
+
             return SegmentRepository.composeSegment(updatedSegment, true);
         } catch (error) {
             logger.error('Error in updateSegment service', { error });
@@ -537,6 +544,89 @@ export class SegmentService {
 
         } catch (error) {
             logger.error('Error in updateSegmentStartDate service', { error });
+            throw error;
+        }
+    }
+
+    async generateSegments(timelineId: string, userId: string, data: GenerateSegmentsRequirements): Promise<SegmentExtendedDto[]> {
+        try {
+            const timeline = await timelineService.getTimelineById(timelineId, userId);
+            if (!timeline) {
+                throw new AppError(
+                    ERROR_CODES.NOT_FOUND.httpStatus,
+                    ERROR_CODES.NOT_FOUND.code,
+                    'Timeline not found',
+                    'The timeline you are trying to generate segments for does not exist'
+                );
+            }
+
+            if(timeline.author.id !== userId){
+                throw new AppError(
+                    ERROR_CODES.FORBIDDEN_ERROR.httpStatus,
+                    ERROR_CODES.FORBIDDEN_ERROR.code,
+                    'Access denied',
+                    'You do not have permission to generate segments for this timeline'
+                );
+            }
+
+            const timelineType = await timelineService.getTimelineType(timeline.type.id);
+            if(!timelineType || !timelineType?.supportGeneration){
+                throw new AppError(
+                    ERROR_CODES.BAD_REQUEST.httpStatus,
+                    ERROR_CODES.BAD_REQUEST.code,
+                    'Timeline type does not support generation',
+                    'The timeline type does not support generation'
+                );
+            }
+
+            // get user credits
+            const user = await userService.getUserById(userId);
+            if(!user){
+                throw new AppError(
+                    ERROR_CODES.NOT_FOUND.httpStatus,
+                    ERROR_CODES.NOT_FOUND.code,
+                    'User not found',
+                    'User not found'
+                );
+            }
+
+            const credits = user.credits;
+            const requestData = {
+                ...data,
+                credits: credits,
+                title: timeline.title,
+                timeUnit:timeline.timeUnit?.code || "",
+                duration: timeline.duration,
+                type: timeline.type.type
+            }
+
+            // Generate segments
+            const segmentResponse = await llmServices.generateSegments(requestData);
+            if(!segmentResponse || !segmentResponse?.segments || segmentResponse?.segments?.length === 0){
+                throw new AppError(
+                    ERROR_CODES.BAD_REQUEST.httpStatus,
+                    ERROR_CODES.BAD_REQUEST.code,
+                    'Bad Request',
+                    'Failed to generate segments'
+                );
+            }
+
+            const creditsUsed = segmentResponse.creditsUsed;
+            const newCredits = credits - creditsUsed;
+            await userService.updateCredits(userId, newCredits);
+
+            // Create Segments
+            const segments = await this.createBulkSegments({
+                timelineId: timelineId,
+                segments: segmentResponse.segments
+            }, userId);
+
+            await timelineService.updateTimelineGeneration(timelineId, userId);
+            
+            return segments;
+
+        } catch (error) {
+            logger.error('Error in generateSegments service', { error });
             throw error;
         }
     }

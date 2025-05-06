@@ -35,4 +35,14 @@ export class SegmentGoalRepository  {
         return result.rows.length > 0;
     }
 
+    static async update(id: string, goal: string): Promise<SegmentGoalProps | null> {
+        const query = `
+            UPDATE segment_goals 
+            SET goal = $2, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *
+        `;
+        const result = await pool.query(query, [id, goal]);
+        return result.rows[0] ? mapDbRowToSegmentGoal(result.rows[0]) : null;
+    }
 } 
