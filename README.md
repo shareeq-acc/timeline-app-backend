@@ -1,10 +1,6 @@
 # Timeline Application
 
-[API Hosted Link](https://timeline-backend-tau.vercel.app/api/auth)
-
-[Video: Code Demo](https://drive.google.com/file/d/1ZtrU5Pyi-TqShoUQ56YDwEp3uSvWg2Sv/view) 
-
-[Video: Postman Demo](https://drive.google.com/file/d/1dEJC5X80AJUCl9ifMHQlIRGUK__2_0DH/view)
+[Hosted Link](https://timeline-frontend-git-main-arham-as-projects.vercel.app/)
 
 A robust timeline management application that allows users to create, manage, and share different types of timelines. Built with Node.js, Express, TypeScript, and PostgreSQL.
 
@@ -155,6 +151,12 @@ src/
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+
+[API Hosted Link](https://timeline-backend-tau.vercel.app/api/auth)
+
+[Video: Code Demo](https://drive.google.com/file/d/1ZtrU5Pyi-TqShoUQ56YDwEp3uSvWg2Sv/view) 
+
+[Video: Postman Demo](https://drive.google.com/file/d/1dEJC5X80AJUCl9ifMHQlIRGUK__2_0DH/view)
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
