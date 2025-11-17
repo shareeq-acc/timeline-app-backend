@@ -1,1 +1,1 @@
-export const DEFAULT_CREDITS = 10;
+export const DEFAULT_CREDITS = 18;

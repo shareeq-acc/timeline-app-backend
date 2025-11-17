@@ -6,7 +6,7 @@ import segmentRoutes from './modules/segment/routes/segmentRoutes';
 const router = Router();
 
 router.use('/auth', authRoutes);
-router.use('/timeline', timelineRoutes);
+router.use('/timeline', timelineRoutes); 
 router.use('/segment', segmentRoutes);
 
 export default router;
