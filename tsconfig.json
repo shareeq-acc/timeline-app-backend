@@ -8,9 +8,25 @@
     "outDir": "dist",
     "rootDir": ".",
     "resolveJsonModule": true,
-    "typeRoots": ["./node_modules/@types", "src/shared/types"],
-    "types": ["node", "express"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "src/shared/types"
+    ],
+    "types": [
+      "node",
+      "express",
+      "jest"
+    ]
   },
-  "include": ["src/**/*", "src/shared/types/**/*", "api/index.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*",
+    "src/shared/types/**/*",
+    "api/index.ts",
+    "jest.config.ts",
+    "jest.config.unit.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
