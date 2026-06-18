@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { dataValidation } from '../validations/dataValidation';
-import { login, register, refreshToken, getUserLoggedIn } from '../controllers/authController';
+import { login, register, refreshToken, getUserLoggedIn, logout } from '../controllers/authController';
 import { authMiddleware } from '../../../shared/middleware/authMiddleware';
 
 const router = Router();
@@ -18,5 +18,6 @@ router.post('/login', dataValidation.validateLogin, (req, res) =>
   login(req, res)
 );
 router.post('/refresh', (req, res) => refreshToken(req, res));
+router.post('/logout', (req, res) => logout(req, res));
 
 export default router;
