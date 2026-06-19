@@ -8,12 +8,15 @@ const segmentBaseSchema = {
         .min(1, 'Title is required')
         .max(100, 'Title must be less than 100 characters'),
     goals: z.array(z.string())
-        .min(1, 'At least one goal is required')
-        .max(10, 'Maximum 10 goals allowed'),
+        .max(10, 'Maximum 10 goals allowed')
+        .optional()
+        .default([]),
     references: z.array(z.string())
         .max(10, 'Maximum 10 references allowed')
-        .optional(),
+        .optional()
+        .default([]),
     milestone: z.string().optional(),
+    scheduleDate: z.string().optional().nullable(),
 };
 
 const createSegmentSchema = z.object({
@@ -26,12 +29,25 @@ const bulkCreateSegmentSchema = z.object({
 });
 
 
-// For update operations, make all fields optional
+const goalUpdateSchema = z.object({
+    id: z.string().optional(),
+    goal: z.string().min(1, 'Goal text is required')
+});
+
+const referenceUpdateSchema = z.object({
+    id: z.string().optional(),
+    reference: z.string().min(1, 'Reference text is required')
+});
+
+// For update operations, make all fields optional and support objects for goals/references
 const updateSegmentSchema = z.object({
-    ...Object.entries(segmentBaseSchema).reduce((acc, [key, schema]) => ({
-        ...acc,
-        [key]: schema.optional(),
-    }), {}),
+    timelineId: z.string().uuid('Invalid timeline ID').optional(),
+    unitNumber: z.number().int().positive('Unit number must be positive').optional(),
+    title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters').optional(),
+    goals: z.array(goalUpdateSchema).optional(),
+    references: z.array(referenceUpdateSchema).optional(),
+    milestone: z.string().optional(),
+    scheduleDate: z.string().optional().nullable(),
 });
 
 const createBulkSegmentsSchema = z.object({

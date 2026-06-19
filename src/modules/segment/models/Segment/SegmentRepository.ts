@@ -89,6 +89,15 @@ export class SegmentRepository {
             }
         }
 
+        const scheduleDate = data.scheduleDate || data.startDate;
+        if (scheduleDate) {
+            const scheduleQuery = `
+                INSERT INTO segment_schedules (segment_id, schedule_date)
+                VALUES ($1, $2)
+            `;
+            await client.query(scheduleQuery, [segment.id, scheduleDate]);
+        }
+
         return {
             ...segment,
             goals,
@@ -133,7 +142,7 @@ export class SegmentRepository {
         return { segments, total };
     }
 
-    static async update(id: string, data: Partial<SegmentResponseDto>): Promise<SegmentType | null> {
+    static async update(id: string, data: any): Promise<SegmentType | null> {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -153,26 +162,67 @@ export class SegmentRepository {
                 paramCount++;
             }
 
-            if (updates.length === 0) {
-                return null;
+            if (updates.length > 0) {
+                updates.push(`updated_at = CURRENT_TIMESTAMP`);
+                values.push(id);
+
+                const query = `
+                    UPDATE segments 
+                    SET ${updates.join(', ')}
+                    WHERE id = $${paramCount}
+                    RETURNING *
+                `;
+
+                const result = await client.query(query, values);
+                if (result.rows.length === 0) {
+                    return null;
+                }
             }
 
-            updates.push(`updated_at = CURRENT_TIMESTAMP`);
-            values.push(id);
-
-            const query = `
-                UPDATE segments 
-                SET ${updates.join(', ')}
-                WHERE id = $${paramCount}
-                RETURNING *
-            `;
-
-            const result = await client.query(query, values);
-            if (result.rows.length === 0) {
-                return null;
+            // Update Goals
+            if (data.goals !== undefined) {
+                const deleteGoalsQuery = 'DELETE FROM segment_goals WHERE segment_id = $1';
+                await client.query(deleteGoalsQuery, [id]);
+                for (const g of data.goals) {
+                    const goalText = typeof g === 'string' ? g : g.goal;
+                    if (goalText) {
+                        const insertGoalQuery = 'INSERT INTO segment_goals (segment_id, goal) VALUES ($1, $2)';
+                        await client.query(insertGoalQuery, [id, goalText]);
+                    }
+                }
             }
 
-            const segment = mapDbRowToSegment(result.rows[0]);
+            // Update References
+            if (data.references !== undefined) {
+                const deleteRefsQuery = 'DELETE FROM segment_references WHERE segment_id = $1';
+                await client.query(deleteRefsQuery, [id]);
+                for (const r of data.references) {
+                    const refText = typeof r === 'string' ? r : r.reference;
+                    if (refText) {
+                        const insertRefQuery = 'INSERT INTO segment_references (segment_id, reference) VALUES ($1, $2)';
+                        await client.query(insertRefQuery, [id, refText]);
+                    }
+                }
+            }
+
+            // Update Schedule Date
+            if (data.scheduleDate !== undefined) {
+                const checkScheduleQuery = 'SELECT id FROM segment_schedules WHERE segment_id = $1';
+                const scheduleResult = await client.query(checkScheduleQuery, [id]);
+                if (scheduleResult.rows.length === 0) {
+                    if (data.scheduleDate) {
+                        const insertScheduleQuery = 'INSERT INTO segment_schedules (segment_id, schedule_date) VALUES ($1, $2)';
+                        await client.query(insertScheduleQuery, [id, data.scheduleDate]);
+                    }
+                } else {
+                    const updateScheduleQuery = 'UPDATE segment_schedules SET schedule_date = $1, updated_at = CURRENT_TIMESTAMP WHERE segment_id = $2';
+                    await client.query(updateScheduleQuery, [data.scheduleDate || null, id]);
+                }
+            }
+
+            const retrieveQuery = 'SELECT * FROM segments WHERE id = $1';
+            const retrieveResult = await client.query(retrieveQuery, [id]);
+            const segment = mapDbRowToSegment(retrieveResult.rows[0]);
 
             await client.query('COMMIT');
             return segment;

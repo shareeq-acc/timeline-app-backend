@@ -9,6 +9,7 @@ export interface CreateSegmentRequestDto {
     milestone?: string;
     isForkModified?: boolean;
     startDate?: string;
+    scheduleDate?: string;
     completedAt?: string;
 }
 
@@ -44,6 +45,7 @@ export interface UpdateSegmentRequestDto{
     goals?: SegmentGoalResponseDto[];
     references?: SegmentReferenceResponseDto[];
     milestone?: string;
+    scheduleDate?: string;
 } 
 
 export interface GetSegmentsResponseDto {
