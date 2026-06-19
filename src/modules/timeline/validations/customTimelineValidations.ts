@@ -6,7 +6,38 @@ import { TimelineTypeRepository } from '../models/timelineTypes/TimelineTypeRepo
 
 export const validateTimelineBusinessRules = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const typeId = req.body.typeId;
+        let timeUnitId = req.body.timeUnitId;
+        if (timeUnitId) {
+            const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(timeUnitId);
+            if (!isUuid) {
+                const timeUnits = await TimeUnitRepository.findAllExtended();
+                const codeToMatch = timeUnitId.toUpperCase();
+                const normalizedCode = codeToMatch === 'WEEKLY' ? 'WEEK' : codeToMatch;
+                const matchedUnit = timeUnits.find(u => u.code === normalizedCode || u.code === codeToMatch);
+                if (matchedUnit) {
+                    timeUnitId = matchedUnit.id;
+                    req.body.timeUnitId = timeUnitId;
+                } else {
+                    throw new AppError(ERROR_CODES.BAD_REQUEST.httpStatus, ERROR_CODES.BAD_REQUEST.code, ERROR_CODES.BAD_REQUEST.message, "Invalid time unit");
+                }
+            }
+        }
+
+        let typeId = req.body.typeId;
+        const isUuidType = typeId && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(typeId);
+        if (!typeId || !isUuidType || typeId === 'with_time_unit' || typeId === 'without_time_unit') {
+            const timelineTypes = await TimelineTypeRepository.findAllExtended();
+            const hasTimeUnit = !!timeUnitId;
+            const targetTypeName = hasTimeUnit ? 'ROADMAP' : 'CHRONICLE';
+            const matchedType = timelineTypes.find(t => t.type === targetTypeName);
+            if (matchedType) {
+                typeId = matchedType.id;
+                req.body.typeId = typeId;
+            } else {
+                throw new AppError(ERROR_CODES.BAD_REQUEST.httpStatus, ERROR_CODES.BAD_REQUEST.code, ERROR_CODES.BAD_REQUEST.message, "Invalid timeline type");
+            }
+        }
+
         const timelineType = await TimelineTypeRepository.findById(typeId);
 
         if(!timelineType) {
