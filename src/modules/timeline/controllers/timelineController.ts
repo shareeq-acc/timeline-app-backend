@@ -117,8 +117,9 @@ export const exploreTimelines = async (
 ) => {
     const page = parseInt(req.query.page || '1');
     const limit = parseInt(req.query.limit || '10');
+    const userId = req.user;
 
-    const timelines = await timelineService.exploreTimelines(page, limit);
+    const timelines = await timelineService.exploreTimelines(page, limit, userId);
     sendSuccess(res, timelines, 'Timelines retrieved successfully');
 }; 
 

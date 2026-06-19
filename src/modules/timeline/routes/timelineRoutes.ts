@@ -14,7 +14,7 @@ router.get('/metadata', getMetadata);
 router.get('/search', searchTimelines);
 
 // Explore timelines
-router.get('/explore', exploreTimelines);
+router.get('/explore', authMiddleware.optionalAuth, exploreTimelines);
 
 // Create a new timeline
 router.post('/', authMiddleware.requireAuth, dataValidation.validateCreateTimeline, validateTimelineBusinessRules, createTimeline);

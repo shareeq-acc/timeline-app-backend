@@ -341,7 +341,8 @@ export class TimelineService {
 
     async exploreTimelines(
         page: number = 1,
-        limit: number = 10
+        limit: number = 10,
+        excludeAuthorId?: string
     ): Promise<{ [key: string]: GetTimelinesResponseDto }> {
         try {
             const timelineTypes = await TimelineTypeRepository.findAllExtended();
@@ -350,7 +351,7 @@ export class TimelineService {
             const timelinesByType: { [key: string]: GetTimelinesResponseDto } = {};
             
             for (const type of timelineTypes) {
-                const { timelines, total } = await TimelineRepository.findByType(type.id, page, limit);
+                const { timelines, total } = await TimelineRepository.findByType(type.id, page, limit, excludeAuthorId);
                 
                 const mappedTimelines = await Promise.all(
                     timelines.map(timeline =>

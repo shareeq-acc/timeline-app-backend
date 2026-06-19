@@ -138,27 +138,42 @@ export class TimelineRepository {
   static async findByType(
     typeId: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    excludeAuthorId?: string
   ): Promise<{ timelines: TimelineDbRow[]; total: number }> {
     const offset = (page - 1) * limit;
     
-    const countQuery = `
+    let countQuery = `
       SELECT COUNT(*) 
       FROM timelines 
       WHERE type_id = $1 AND is_public = true
     `;
-    const countResult = await pool.query<{ count: string }>(countQuery, [typeId]);
+    const countParams: any[] = [typeId];
+    if (excludeAuthorId) {
+      countQuery += ` AND author_id != $2`;
+      countParams.push(excludeAuthorId);
+    }
+    const countResult = await pool.query<{ count: string }>(countQuery, countParams);
     const total = parseInt(countResult.rows[0].count);
 
-    const query = `
+    let query = `
       SELECT t.*, u.username AS author_username
       FROM timelines t
       JOIN users u ON t.author_id = u.id
       WHERE t.type_id = $1 AND t.is_public = true
-      ORDER BY t.created_at DESC 
-      LIMIT $2 OFFSET $3
     `;
-    const result = await pool.query<TimelineDbRow>(query, [typeId, limit, offset]);
+    const queryParams: any[] = [typeId];
+    if (excludeAuthorId) {
+      query += ` AND t.author_id != $2`;
+      queryParams.push(excludeAuthorId);
+    }
+    
+    const limitIndex = queryParams.length + 1;
+    const offsetIndex = queryParams.length + 2;
+    query += ` ORDER BY t.created_at DESC LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
+    queryParams.push(limit, offset);
+    
+    const result = await pool.query<TimelineDbRow>(query, queryParams);
     
     return { 
       timelines: result.rows.map(mapDbRowToTimeline),
