@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { dataValidation } from '../validations/dataValidation';
-import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline, searchTimelines, exploreTimelines, updateTimeline } from '../controllers/timelineController';
+import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline, searchTimelines, exploreTimelines, updateTimeline, deleteTimeline } from '../controllers/timelineController';
 import { authMiddleware } from '../../../shared/middleware/authMiddleware';
 import { validateTimelineBusinessRules } from '../validations/customTimelineValidations';
 
@@ -26,6 +26,9 @@ router.get('/:id', authMiddleware.optionalAuth, getTimelineById);
 
 // Update a timeline
 router.put('/:id', authMiddleware.requireAuth, dataValidation.validateUpdateTimeline, updateTimeline);
+
+// Delete a timeline
+router.delete('/:id', authMiddleware.requireAuth, deleteTimeline);
 
 // Get all timelines for the user
 // If the user is not authenticated, get all timelines that are public

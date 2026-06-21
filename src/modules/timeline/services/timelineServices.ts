@@ -418,6 +418,44 @@ export class TimelineService {
             throw error;
         }
     }
+
+    async deleteTimeline(id: string, userId: string): Promise<boolean> {
+        try {
+            const timeline = await TimelineRepository.findById(id);
+            if (!timeline) {
+                throw new AppError(
+                    ERROR_CODES.NOT_FOUND.httpStatus,
+                    ERROR_CODES.NOT_FOUND.code,
+                    ERROR_CODES.NOT_FOUND.message,
+                    'Timeline not found'
+                );
+            }
+
+            if (timeline.author.id !== userId) {
+                throw new AppError(
+                    ERROR_CODES.FORBIDDEN_ERROR.httpStatus,
+                    ERROR_CODES.FORBIDDEN_ERROR.code,
+                    ERROR_CODES.FORBIDDEN_ERROR.message,
+                    'You are not authorized to delete this timeline'
+                );
+            }
+
+            const deleted = await TimelineRepository.softDelete(id);
+            if (!deleted) {
+                throw new AppError(
+                    ERROR_CODES.INTERNAL_SERVER_ERROR.httpStatus,
+                    ERROR_CODES.INTERNAL_SERVER_ERROR.code,
+                    ERROR_CODES.INTERNAL_SERVER_ERROR.message,
+                    'Failed to delete timeline'
+                );
+            }
+
+            return true;
+        } catch (error) {
+            logger.error('Error in deleteTimeline service', { error, id });
+            throw error;
+        }
+    }
 }
 
 export const timelineService = new TimelineService();

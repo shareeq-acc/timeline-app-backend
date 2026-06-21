@@ -72,7 +72,7 @@ export class TimelineRepository {
                 u.username AS author_username
             FROM timelines t
             JOIN users u ON t.author_id = u.id
-            WHERE t.id = $1
+            WHERE t.id = $1 AND t.deleted_at IS NULL
         `;
             const result = await pool.query<TimelineDbRow>(query, [id]);
 
@@ -94,13 +94,13 @@ export class TimelineRepository {
     ): Promise<{ timelines: TimelineDbRow[]; total: number }> {
         const offset = (page - 1) * limit;
 
-        const countQuery = 'SELECT COUNT(*) FROM timelines WHERE author_id = $1';
+        const countQuery = 'SELECT COUNT(*) FROM timelines WHERE author_id = $1 AND deleted_at IS NULL';
         const countResult = await pool.query<{ count: string }>(countQuery, [authorId]);
         const total = parseInt(countResult.rows[0].count);
 
         const query = `
                 SELECT * FROM timelines 
-                WHERE author_id = $1 
+                WHERE author_id = $1 AND deleted_at IS NULL
                 ORDER BY created_at DESC 
                 LIMIT $2 OFFSET $3
             `;
@@ -136,7 +136,7 @@ export class TimelineRepository {
     const countQuery = `
       SELECT COUNT(*) 
       FROM timelines 
-      WHERE (title ILIKE $1 OR description ILIKE $1)
+      WHERE (title ILIKE $1 OR description ILIKE $1) AND deleted_at IS NULL
     `;
     const countResult = await pool.query<{ count: string }>(countQuery, [`%${searchTerm}%`]);
     const total = parseInt(countResult.rows[0].count);
@@ -145,7 +145,7 @@ export class TimelineRepository {
       SELECT t.*, u.username AS author_username
       FROM timelines t
       JOIN users u ON t.author_id = u.id
-      WHERE (t.title ILIKE $1 OR t.description ILIKE $1)
+      WHERE (t.title ILIKE $1 OR t.description ILIKE $1) AND t.deleted_at IS NULL
       ORDER BY t.created_at DESC 
       LIMIT $2 OFFSET $3
     `;
@@ -168,7 +168,7 @@ export class TimelineRepository {
     let countQuery = `
       SELECT COUNT(*) 
       FROM timelines 
-      WHERE type_id = $1 AND is_public = true
+      WHERE type_id = $1 AND is_public = true AND deleted_at IS NULL
     `;
     const countParams: any[] = [typeId];
     if (excludeAuthorId) {
@@ -182,7 +182,7 @@ export class TimelineRepository {
       SELECT t.*, u.username AS author_username
       FROM timelines t
       JOIN users u ON t.author_id = u.id
-      WHERE t.type_id = $1 AND t.is_public = true
+      WHERE t.type_id = $1 AND t.is_public = true AND t.deleted_at IS NULL
     `;
     const queryParams: any[] = [typeId];
     if (excludeAuthorId) {
@@ -254,6 +254,22 @@ export class TimelineRepository {
     } catch (error) {
       logger.error('Error in update', { error, id });
       return null;
+    }
+  }
+
+  static async softDelete(id: string): Promise<boolean> {
+    try {
+      const query = `
+        UPDATE timelines 
+        SET deleted_at = CURRENT_TIMESTAMP 
+        WHERE id = $1
+        RETURNING *
+      `;
+      const result = await pool.query(query, [id]);
+      return result.rows.length > 0;
+    } catch (error) {
+      logger.error('Error in softDelete', { error, id });
+      return false;
     }
   }
 } 

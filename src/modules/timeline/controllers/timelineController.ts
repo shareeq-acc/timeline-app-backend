@@ -139,3 +139,19 @@ export const updateTimeline = async (
     sendSuccess(res, result, 'Timeline updated successfully');
 };
 
+/**
+ * Deletes a timeline
+ * @route DELETE /api/timelines/:id
+ * @param req Request with timeline ID in params
+ * @param res Response with success status
+ */
+export const deleteTimeline = async (
+    req: Request<{ id: string }>,
+    res: Response<ApiResponse<{ success: boolean }>>
+) => {
+    const { id } = req.params;
+    const userId = req.user || "";
+    await timelineService.deleteTimeline(id, userId);
+    sendSuccess(res, { success: true }, 'Timeline deleted successfully');
+};
+

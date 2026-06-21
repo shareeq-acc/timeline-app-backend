@@ -31,6 +31,9 @@ export const initializeDatabase = async () => {
 
 export const setupDatabase = async () => {
   try {
+    // Add deleted_at column to timelines if it does not exist
+    await pool.query('ALTER TABLE timelines ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;');
+
     for (const table of allTables) {
       try {
         await pool.query(table.sql);

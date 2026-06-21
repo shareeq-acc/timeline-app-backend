@@ -15,7 +15,8 @@ export const timelineSql : Table = {
           enable_scheduling BOOLEAN NOT NULL DEFAULT false,
           version TEXT NOT NULL DEFAULT '1.0.0',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          deleted_at TIMESTAMP
         )
       `,
 }
