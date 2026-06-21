@@ -3,6 +3,28 @@ import { TimelineDbRow, TimelineIdentification, TimelineProps } from './timeline
 import logger from '../../../../shared/utils/logger';
 import { mapDbRowToTimeline } from './timelineDataMapper';
 
+export function incrementVersion(versionStr: string): string {
+  if (!versionStr) return '1.0.1';
+  const parts = versionStr.split('.');
+  if (parts.length >= 2) {
+    const major = parts[0];
+    const minor = parseInt(parts[1], 10);
+    if (!isNaN(minor)) {
+      const nextMinor = minor + 1;
+      const patchAndRest = parts.slice(2);
+      if (patchAndRest.length > 0) {
+        return `${major}.${nextMinor}.${patchAndRest.join('.')}`;
+      }
+      return `${major}.${nextMinor}`;
+    }
+  }
+  const parsed = parseFloat(versionStr);
+  if (!isNaN(parsed)) {
+    return (parsed + 0.1).toFixed(1);
+  }
+  return '1.0.0';
+}
+
 export class TimelineRepository {
 
     static async create(
@@ -179,5 +201,59 @@ export class TimelineRepository {
       timelines: result.rows.map(mapDbRowToTimeline),
       total 
     };
+  }
+
+  static async update(
+    id: string,
+    data: { title?: string; description?: string; isPublic?: boolean }
+  ): Promise<TimelineDbRow | null> {
+    try {
+      const current = await this.findById(id);
+      if (!current) return null;
+
+      const fields: string[] = [];
+      const values: any[] = [];
+      let index = 1;
+
+      if (data.title !== undefined) {
+        fields.push(`title = $${index++}`);
+        values.push(data.title);
+      }
+      if (data.description !== undefined) {
+        fields.push(`description = $${index++}`);
+        values.push(data.description);
+      }
+      if (data.isPublic !== undefined) {
+        fields.push(`is_public = $${index++}`);
+        values.push(data.isPublic);
+      }
+
+      if (fields.length === 0) {
+        return current;
+      }
+
+      const nextVersion = incrementVersion(current.version || '1.0.0');
+
+      // Automatically increment version and update timestamp
+      fields.push(`version = $${index++}`);
+      values.push(nextVersion);
+      
+      fields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+      values.push(id);
+      const query = `
+        UPDATE timelines 
+        SET ${fields.join(', ')} 
+        WHERE id = $${index} 
+        RETURNING *
+      `;
+
+      const result = await pool.query<TimelineDbRow>(query, values);
+      if (result.rows.length === 0) return null;
+      return mapDbRowToTimeline(result.rows[0]);
+    } catch (error) {
+      logger.error('Error in update', { error, id });
+      return null;
+    }
   }
 } 

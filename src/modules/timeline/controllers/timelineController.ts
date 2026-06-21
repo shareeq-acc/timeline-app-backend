@@ -123,3 +123,19 @@ export const exploreTimelines = async (
     sendSuccess(res, timelines, 'Timelines retrieved successfully');
 }; 
 
+/**
+ * Update a timeline
+ * @route PUT /api/timelines/:id
+ * @param req Request with timeline ID in params and updated fields in body
+ * @param res Response with updated timeline
+ */
+export const updateTimeline = async (
+    req: Request<{ id: string }, ApiResponse<TimelineResponseDto>, { title?: string; description?: string; isPublic?: boolean }>,
+    res: Response<ApiResponse<TimelineResponseDto>>
+) => {
+    const { id } = req.params;
+    const userId = req.user || "";
+    const result = await timelineService.updateTimeline(id, userId, req.body);
+    sendSuccess(res, result, 'Timeline updated successfully');
+};
+

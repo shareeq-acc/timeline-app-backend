@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { dataValidation } from '../validations/dataValidation';
-import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline, searchTimelines, exploreTimelines } from '../controllers/timelineController';
+import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline, searchTimelines, exploreTimelines, updateTimeline } from '../controllers/timelineController';
 import { authMiddleware } from '../../../shared/middleware/authMiddleware';
 import { validateTimelineBusinessRules } from '../validations/customTimelineValidations';
 
@@ -23,6 +23,9 @@ router.post('/', authMiddleware.requireAuth, dataValidation.validateCreateTimeli
 // If the user is not authenticated, only get the timeline if it is a public timeline
 // If the user is authenticated, get the timeline for the user (Public or Private)
 router.get('/:id', authMiddleware.optionalAuth, getTimelineById);
+
+// Update a timeline
+router.put('/:id', authMiddleware.requireAuth, dataValidation.validateUpdateTimeline, updateTimeline);
 
 // Get all timelines for the user
 // If the user is not authenticated, get all timelines that are public

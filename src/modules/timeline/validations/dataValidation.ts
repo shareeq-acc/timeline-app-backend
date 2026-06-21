@@ -17,6 +17,21 @@ export const createTimelineSchema = z.object({
     enableScheduling: z.boolean().optional()
 });
 
+export const updateTimelineSchema = z.object({
+    title: z
+        .string()
+        .min(1, 'Title is required')
+        .max(100, 'Title must be less than 100 characters')
+        .optional(),
+    description: z
+        .string()
+        .min(1, 'Description is required')
+        .max(500, 'Description must be less than 500 characters')
+        .optional(),
+    isPublic: z.boolean().optional(),
+});
+
 export const dataValidation = {
-    validateCreateTimeline: validateBody(createTimelineSchema)
+    validateCreateTimeline: validateBody(createTimelineSchema),
+    validateUpdateTimeline: validateBody(updateTimelineSchema)
 }; 

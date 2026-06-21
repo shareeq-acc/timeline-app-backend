@@ -377,6 +377,47 @@ export class TimelineService {
         }
     }
 
+    async updateTimeline(
+        id: string,
+        userId: string,
+        data: { title?: string; description?: string; isPublic?: boolean }
+    ): Promise<TimelineResponseDto> {
+        try {
+            const timeline = await TimelineRepository.findById(id);
+            if (!timeline) {
+                throw new AppError(
+                    ERROR_CODES.NOT_FOUND.httpStatus,
+                    ERROR_CODES.NOT_FOUND.code,
+                    ERROR_CODES.NOT_FOUND.message,
+                    'Timeline not found'
+                );
+            }
+
+            if (timeline.author.id !== userId) {
+                throw new AppError(
+                    ERROR_CODES.FORBIDDEN_ERROR.httpStatus,
+                    ERROR_CODES.FORBIDDEN_ERROR.code,
+                    ERROR_CODES.FORBIDDEN_ERROR.message,
+                    'You are not authorized to edit this timeline'
+                );
+            }
+
+            const updatedTimeline = await TimelineRepository.update(id, data);
+            if (!updatedTimeline) {
+                throw new AppError(
+                    ERROR_CODES.INTERNAL_SERVER_ERROR.httpStatus,
+                    ERROR_CODES.INTERNAL_SERVER_ERROR.code,
+                    ERROR_CODES.INTERNAL_SERVER_ERROR.message,
+                    'Failed to update timeline'
+                );
+            }
+
+            return await this.enrichTimeline(updatedTimeline, true);
+        } catch (error) {
+            logger.error('Error in updateTimeline service', { error, id });
+            throw error;
+        }
+    }
 }
 
-export const timelineService = new TimelineService(); 
+export const timelineService = new TimelineService();
