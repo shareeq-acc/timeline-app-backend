@@ -4,13 +4,13 @@ import { mapDbRowToSegmentReference } from "./segmentReferenceDataMapper";
 import { SegmentReferenceProps } from "./segmentReference.type";
 
 export class SegmentReferenceRepository {
-    static async create(client: PoolClient, segmentId: string, reference: string): Promise<SegmentReferenceProps> {
+    static async create(client: PoolClient, segmentId: string, reference: string, label?: string): Promise<SegmentReferenceProps> {
         const query = `
-            INSERT INTO segment_references (segment_id, reference)
-            VALUES ($1, $2)
+            INSERT INTO segment_references (segment_id, reference, label)
+            VALUES ($1, $2, $3)
             RETURNING *
         `;
-        const values = [segmentId, reference];
+        const values = [segmentId, reference, label || null];
     
         const result = await client.query(query, values);
         return mapDbRowToSegmentReference(result.rows[0]);

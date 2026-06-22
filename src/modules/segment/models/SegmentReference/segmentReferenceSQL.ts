@@ -7,6 +7,7 @@ export const segmentReferenceSql: Table = {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         segment_id UUID NOT NULL REFERENCES segments(id) ON DELETE CASCADE,
         "reference" TEXT NOT NULL,
+        "label" TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

@@ -45,14 +45,14 @@ Return ONLY a valid JSON object matching the following structure:
       "title": "Clear, concise name of the segment or milestone",
       "milestone": "A major achievement check point achieved at this stage (use null if not a major milestone, only 1-2 segments should have milestone text)",
       "goals": ["objective 1", "objective 2"],
-      "references": ["reference resource 1", "reference resource 2"]
+      "references": [{"label": "Display Name", "url": "https://example.com"}, {"label": "Resource 2", "url": "https://example2.com"}]
     }
     // ... sequential segments
   ]
 }
 
 ## RULES:
-1. Each segment must have 2-3 specific learning goals and 1-2 high-quality references or learning resource recommendations.
+1. Each segment must have 2-3 specific learning goals and 1-2 high-quality references. Each reference must be an object with a "label" (short display name) and "url" (full URL) field.
 2. The progression of segments must be logical and lead toward achieving the master goal.
 3. If hasTimeUnit is true, unitNumber must be sequential starting from 1 up to ${data.duration}.
 4. If hasTimeUnit is false, unitNumber must be sequential starting from 1 up to the number of segments generated (max 6).
@@ -88,7 +88,7 @@ Return ONLY a valid JSON array with these fields per segment:
 - unitNumber: Sequential number starting at 1
 - milestone: Text for major achievements (null for most segments, only 1-2 segments should have milestones)
 - goals: Array of 2–3 specific learning objectives
-- references: Array of 1–2 high-quality resources
+- references: Array of 1–2 objects with {"label": "Display Name", "url": "https://..."} format
 
 Important: Return ONLY the valid JSON array. Do not include markdown wraps like \`\`\`json or any other text before/after.
 `;
@@ -278,10 +278,14 @@ class LLMServices {
 
           if (seg.references && Array.isArray(seg.references)) {
             for (const ref of seg.references) {
-              await client.query(
-                'INSERT INTO segment_references (segment_id, reference) VALUES ($1, $2)',
-                [segmentId, ref]
-              );
+              const refUrl = typeof ref === 'string' ? ref : (ref.url || ref.reference || '');
+              const refLabel = typeof ref === 'string' ? undefined : (ref.label || undefined);
+              if (refUrl) {
+                await client.query(
+                  'INSERT INTO segment_references (segment_id, reference, label) VALUES ($1, $2, $3)',
+                  [segmentId, refUrl, refLabel || null]
+                );
+              }
             }
           }
 

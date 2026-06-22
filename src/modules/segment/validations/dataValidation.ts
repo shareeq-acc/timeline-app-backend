@@ -36,7 +36,8 @@ const goalUpdateSchema = z.object({
 
 const referenceUpdateSchema = z.object({
     id: z.string().optional(),
-    reference: z.string().min(1, 'Reference text is required')
+    reference: z.string().min(1, 'Reference URL is required'),
+    label: z.string().optional()
 });
 
 // For update operations, make all fields optional and support objects for goals/references

@@ -288,7 +288,7 @@ export class TimelineService {
                         title: segment.title,
                         milestone: segment.milestone,
                         goals: segment.goals.map(g => g.goal),
-                        references: segment.references.map(r => r.reference)
+                        references: segment.references.map(r => ({ reference: r.reference, label: r.label }))
                     }))
                 },
                 userId,

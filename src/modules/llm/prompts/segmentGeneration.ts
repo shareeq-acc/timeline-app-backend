@@ -21,7 +21,7 @@ Return ONLY a valid JSON array with these fields per segment:
 - unitNumber: Sequential number starting at 1
 - milestone: Text for major achievements (null for most segments, only 2–3 segments should have milestones)
 - goals: Array of 2–3 specific learning objectives
-- references: Array of 1–2 high-quality resources
+- references: Array of 1–2 objects with {"label": "Display Name", "url": "https://..."} format
 
 Important: Return ONLY the valid JSON array with no additional text or explanation.
 `

@@ -5,7 +5,7 @@ export interface CreateSegmentRequestDto {
     unitNumber: number;
     title: string;
     goals: string[];
-    references?: string[];
+    references?: (string | { reference: string; label?: string })[];
     milestone?: string;
     isForkModified?: boolean;
     startDate?: string;
@@ -26,6 +26,7 @@ export interface SegmentGoalResponseDto{
 export interface SegmentReferenceResponseDto{
     id: string;
     reference: string;
+    label?: string;
 }
 
 export interface SegmentResponseDto extends SegmentProps {
@@ -63,6 +64,7 @@ export interface CreateSegmentGoalDto {
 export interface CreateSegmentReferenceDto {
     segmentId: string;
     reference: string;
+    label?: string;
 } 
 
 export interface CreateSchedulingDto {

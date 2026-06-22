@@ -25,7 +25,8 @@ export class SegmentRepository {
                 ...segment,
                 references: references.map((r) => ({
                     id: r.id,
-                    reference: r.reference
+                    reference: r.reference,
+                    label: r.label
                 })),
                 goals: goals.map((g) => ({
                     id: g.id,
@@ -84,8 +85,10 @@ export class SegmentRepository {
         const references = [];
         if (data.references?.length) {
             for (const reference of data.references) {
-                const createdReference = await SegmentReferenceRepository.create(client, segment.id, reference);
-                references.push({ id: createdReference.id, reference: createdReference.reference });
+                const refUrl = typeof reference === 'string' ? reference : reference.reference;
+                const refLabel = typeof reference === 'string' ? undefined : reference.label;
+                const createdReference = await SegmentReferenceRepository.create(client, segment.id, refUrl, refLabel);
+                references.push({ id: createdReference.id, reference: createdReference.reference, label: createdReference.label });
             }
         }
 
@@ -197,10 +200,11 @@ export class SegmentRepository {
                 const deleteRefsQuery = 'DELETE FROM segment_references WHERE segment_id = $1';
                 await client.query(deleteRefsQuery, [id]);
                 for (const r of data.references) {
-                    const refText = typeof r === 'string' ? r : r.reference;
-                    if (refText) {
-                        const insertRefQuery = 'INSERT INTO segment_references (segment_id, reference) VALUES ($1, $2)';
-                        await client.query(insertRefQuery, [id, refText]);
+                    const refUrl = typeof r === 'string' ? r : r.reference;
+                    const refLabel = typeof r === 'string' ? undefined : r.label;
+                    if (refUrl) {
+                        const insertRefQuery = 'INSERT INTO segment_references (segment_id, reference, label) VALUES ($1, $2, $3)';
+                        await client.query(insertRefQuery, [id, refUrl, refLabel || null]);
                     }
                 }
             }
