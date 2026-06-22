@@ -17,4 +17,17 @@ export const userTables = [
         )
       `,
     },
+    {
+      name: 'user_profile_pictures',
+      sql: `
+        CREATE TABLE IF NOT EXISTS user_profile_pictures (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          url TEXT NOT NULL,
+          public_id TEXT NOT NULL,
+          is_active BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `,
+    },
 ] as const;

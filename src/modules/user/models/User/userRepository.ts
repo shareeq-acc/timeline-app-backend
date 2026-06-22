@@ -34,7 +34,7 @@ export class UserRepository {
     const query = `
       INSERT INTO users (fname, lname, username, email, password)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, fname, lname, username, email, credits, created_at, updated_at
+      RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
     `;
     const result = await pool.query(query, [fname, lname, username, email, password]);
     logger.info('User created', { userId: result.rows[0].id });
@@ -47,7 +47,7 @@ export class UserRepository {
         UPDATE users 
         SET credits = $2, updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
-        RETURNING id, fname, lname, username, email, credits, created_at, updated_at
+        RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
       `;
       const result = await pool.query(query, [userId, newCredits]);
       return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
@@ -64,6 +64,38 @@ export class UserRepository {
       return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
     } catch (error) {
       logger.error('Error in findById', { error });
+      return null;
+    }
+  }
+
+  static async updateProfile(userId: string, fname: string, lname: string): Promise<UserType | null> {
+    try {
+      const query = `
+        UPDATE users 
+        SET fname = $2, lname = $3, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
+      `;
+      const result = await pool.query(query, [userId, fname, lname]);
+      return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
+    } catch (error) {
+      logger.error('Error updating profile name', { error, userId });
+      return null;
+    }
+  }
+
+  static async updateAvatar(userId: string, avatarUrl: string): Promise<UserType | null> {
+    try {
+      const query = `
+        UPDATE users 
+        SET avatar = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
+      `;
+      const result = await pool.query(query, [userId, avatarUrl]);
+      return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
+    } catch (error) {
+      logger.error('Error updating user avatar', { error, userId });
       return null;
     }
   }

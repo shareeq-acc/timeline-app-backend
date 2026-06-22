@@ -3,7 +3,9 @@ export interface UserPublicProps {
     fname: string;
     lname: string;
     username: string;
+    email: string;
     credits: number;
+    avatar?: string;
 }
 
 export interface UserType extends UserPublicProps{
@@ -21,6 +23,7 @@ export interface UserDbRow {
     email: string;
     password: string;
     credits: number;
+    avatar?: string | null;
     created_at: Date;
     updated_at: Date;
 }

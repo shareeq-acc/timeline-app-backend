@@ -9,6 +9,7 @@ export const mapDbRowToUser = (row: UserDbRow): UserType => {
         email: row.email,
         password: row.password,
         credits: row.credits,
+        avatar: row.avatar || undefined,
         createdAt: row.created_at,
         updatedAt: row.updated_at
     }
@@ -20,6 +21,8 @@ export const mapUserToUserResponse = (user: UserType): UserPublicProps => {
         fname: user.fname,
         lname: user.lname,
         username: user.username,
+        email: user.email,
         credits: user.credits,
+        avatar: user.avatar,
     }
 }
