@@ -167,12 +167,13 @@ export class TimelineRepository {
     
     let countQuery = `
       SELECT COUNT(*) 
-      FROM timelines 
-      WHERE type_id = $1 AND is_public = true AND deleted_at IS NULL
+      FROM timelines t
+      WHERE t.type_id = $1 AND t.is_public = true AND t.deleted_at IS NULL
+        AND (t.duration IS NULL OR (SELECT COUNT(*) FROM segments s WHERE s.timeline_id = t.id) >= t.duration)
     `;
     const countParams: any[] = [typeId];
     if (excludeAuthorId) {
-      countQuery += ` AND author_id != $2`;
+      countQuery += ` AND t.author_id != $2`;
       countParams.push(excludeAuthorId);
     }
     const countResult = await pool.query<{ count: string }>(countQuery, countParams);
@@ -183,6 +184,7 @@ export class TimelineRepository {
       FROM timelines t
       JOIN users u ON t.author_id = u.id
       WHERE t.type_id = $1 AND t.is_public = true AND t.deleted_at IS NULL
+        AND (t.duration IS NULL OR (SELECT COUNT(*) FROM segments s WHERE s.timeline_id = t.id) >= t.duration)
     `;
     const queryParams: any[] = [typeId];
     if (excludeAuthorId) {
