@@ -31,18 +31,6 @@ export const initializeDatabase = async () => {
 
 export const setupDatabase = async () => {
   try {
-    // Add deleted_at column to timelines if it does not exist
-    await pool.query('ALTER TABLE timelines ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;');
-    
-    // Add avatar column to users if it does not exist
-    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;');
-
-    // Add ai_usage column to users if it does not exist
-    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_usage INTEGER NOT NULL DEFAULT 0;');
-
-    // Add label column to segment_references if it does not exist
-    await pool.query('ALTER TABLE segment_references ADD COLUMN IF NOT EXISTS label TEXT;');
-
     for (const table of allTables) {
       try {
         await pool.query(table.sql);
@@ -93,6 +81,19 @@ export const setupDatabase = async () => {
         }
       }
     }
+
+    // Add deleted_at column to timelines if it does not exist
+    await pool.query('ALTER TABLE timelines ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;');
+    
+    // Add avatar column to users if it does not exist
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;');
+
+    // Add ai_usage column to users if it does not exist
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_usage INTEGER NOT NULL DEFAULT 0;');
+
+    // Add label column to segment_references if it does not exist
+    await pool.query('ALTER TABLE segment_references ADD COLUMN IF NOT EXISTS label TEXT;');
+
     logger.info('Database setup completed');
   } catch (error) {
     logger.error('Failed to set up database tables', { error });
