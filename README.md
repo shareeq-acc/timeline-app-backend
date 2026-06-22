@@ -54,27 +54,27 @@ A robust timeline management application that allows users to create, manage, an
 - PostgreSQL (v12 or higher)
 - npm or yarn
 
-## Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
+Create a `.env` file in the root directory with the following variables (see `.env.example` for details):
 
 ```env
 # Server Configuration
-PORT=3000
+PORT=8000
 NODE_ENV=development
+CLIENT_URL=http://localhost:3000
 
 # Database Configuration
-DB_USER=your_db_user
-DB_HOST=localhost
-DB_NAME=your_db_name
-DB_PASS=your_db_password
+DB_USER=postgres
+DB_PASSWORD=password123
+DB_NAME=timeline_db
 DB_PORT=5432
+DATABASE_URL=postgres://postgres:password123@localhost:5432/timeline_db
 
 # JWT Configuration
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
-JWT_ACCESS_EXPIRY=15m
-JWT_REFRESH_EXPIRY=7d
+JWT_ACCESS_SECRET=your_jwt_access_secret_change_me_in_production
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_change_me_in_production
+
+# Gemini AI Configuration
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ## Installation
