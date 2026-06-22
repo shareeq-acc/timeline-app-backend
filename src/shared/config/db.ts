@@ -37,6 +37,9 @@ export const setupDatabase = async () => {
     // Add avatar column to users if it does not exist
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;');
 
+    // Add ai_usage column to users if it does not exist
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_usage INTEGER NOT NULL DEFAULT 0;');
+
     for (const table of allTables) {
       try {
         await pool.query(table.sql);

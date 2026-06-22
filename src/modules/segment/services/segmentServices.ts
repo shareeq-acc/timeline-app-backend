@@ -579,7 +579,7 @@ export class SegmentService {
                 );
             }
 
-            // get user credits
+            // get user usage
             const user = await userService.getUserById(userId);
             if(!user){
                 throw new AppError(
@@ -590,19 +590,29 @@ export class SegmentService {
                 );
             }
 
-            const credits = user.credits;
-            const requestData = {
-                ...data,
-                credits: credits,
-                title: timeline.title,
-                timeUnit:timeline.timeUnit?.code || "",
-                duration: timeline.duration,
-                type: timeline.type.type
+            if (user.aiUsage >= 100) {
+                throw new AppError(
+                    403,
+                    'AI_LIMIT_REACHED',
+                    'Weekly AI usage limit reached. Please wait for reset.',
+                    'Weekly AI usage limit reached. Please wait for reset.'
+                );
             }
 
+            const requestData = {
+                title: timeline.title,
+                timeUnit: timeline.timeUnit?.code || "WEEK",
+                duration: timeline.duration,
+                type: timeline.type.type,
+                goal: timeline.description || timeline.title,
+                skillLevel: data.skillLevel,
+                targetAudience: data.targetAudience,
+                domain: data.domain
+            };
+
             // Generate segments
-            const segmentResponse = await llmServices.generateSegments(requestData);
-            if(!segmentResponse || !segmentResponse?.segments || segmentResponse?.segments?.length === 0){
+            const generatedSegments = await llmServices.generateSegments(requestData, userId);
+            if(!generatedSegments || generatedSegments.length === 0){
                 throw new AppError(
                     ERROR_CODES.BAD_REQUEST.httpStatus,
                     ERROR_CODES.BAD_REQUEST.code,
@@ -611,14 +621,10 @@ export class SegmentService {
                 );
             }
 
-            const creditsUsed = segmentResponse.creditsUsed;
-            const newCredits = credits - creditsUsed;
-            await userService.updateCredits(userId, newCredits);
-
             // Create Segments
             const segments = await this.createBulkSegments({
                 timelineId: timelineId,
-                segments: segmentResponse.segments
+                segments: generatedSegments
             }, userId);
 
             await timelineService.updateTimelineGeneration(timelineId, userId);

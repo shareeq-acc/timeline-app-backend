@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { dataValidation } from '../validations/dataValidation';
-import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline, searchTimelines, exploreTimelines, updateTimeline, deleteTimeline } from '../controllers/timelineController';
+import { createTimeline, getTimelineById, getTimelinesByAuthorId, getMetadata, forkTimeline, searchTimelines, exploreTimelines, updateTimeline, deleteTimeline, generateTimelineWithAI } from '../controllers/timelineController';
 import { authMiddleware } from '../../../shared/middleware/authMiddleware';
 import { validateTimelineBusinessRules } from '../validations/customTimelineValidations';
 
@@ -18,6 +18,7 @@ router.get('/explore', authMiddleware.optionalAuth, exploreTimelines);
 
 // Create a new timeline
 router.post('/', authMiddleware.requireAuth, dataValidation.validateCreateTimeline, validateTimelineBusinessRules, createTimeline);
+router.post('/generate', authMiddleware.requireAuth, generateTimelineWithAI);
 
 // Get a single timeline
 // If the user is not authenticated, only get the timeline if it is a public timeline

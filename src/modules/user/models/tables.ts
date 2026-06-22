@@ -1,5 +1,3 @@
-import { DEFAULT_CREDITS } from "../constants/userConstants";
-
 export const userTables = [
     {
       name: 'users',
@@ -11,7 +9,7 @@ export const userTables = [
           username TEXT UNIQUE NOT NULL,
           email TEXT UNIQUE NOT NULL,
           password TEXT NOT NULL,
-          credits INTEGER NOT NULL DEFAULT ${DEFAULT_CREDITS},
+          ai_usage INTEGER NOT NULL DEFAULT 0,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )

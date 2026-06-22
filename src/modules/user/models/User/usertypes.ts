@@ -4,7 +4,7 @@ export interface UserPublicProps {
     lname: string;
     username: string;
     email: string;
-    credits: number;
+    aiUsage: number;
     avatar?: string;
 }
 
@@ -22,7 +22,7 @@ export interface UserDbRow {
     username: string;
     email: string;
     password: string;
-    credits: number;
+    ai_usage: number;
     avatar?: string | null;
     created_at: Date;
     updated_at: Date;

@@ -155,3 +155,19 @@ export const deleteTimeline = async (
     sendSuccess(res, { success: true }, 'Timeline deleted successfully');
 };
 
+import { llmServices } from '../../llm/services/llmServices';
+
+/**
+ * Generates a new timeline and segments with AI
+ * @route POST /api/timelines/generate
+ */
+export const generateTimelineWithAI = async (
+    req: Request<{}, ApiResponse<TimelineResponseDto>, any>,
+    res: Response<ApiResponse<TimelineResponseDto>>
+) => {
+    const userId = req.user || "";
+    const timelineId = await llmServices.generateTimelineAndSegments(userId, req.body);
+    const timeline = await timelineService.getTimelineById(timelineId, userId);
+    sendSuccess(res, timeline, 'Timeline generated successfully', 201);
+};
+

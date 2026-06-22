@@ -68,13 +68,7 @@ export class UserService {
     }
   }
 
-  /**
-   * Updates a user's credits
-   * @param userId User's ID
-   * @param credits New credits value
-   * @returns Updated User or null if not found
-   */
-    async updateCredits(userId: string, credits: number): Promise<UserPublicProps | null> {
+    async updateAiUsage(userId: string, newUsage: number): Promise<UserPublicProps | null> {
       const userExist = await this.getUserById(userId);
       if(!userExist){
         throw new AppError(
@@ -84,17 +78,56 @@ export class UserService {
           "User not found"
         )
       }
-      const updatedUser = await UserRepository.updateCredits(userId, credits);
+      const updatedUser = await UserRepository.updateAiUsage(userId, newUsage);
       if(!updatedUser){
         throw new AppError(
           ERROR_CODES.INTERNAL_SERVER_ERROR.httpStatus,
           ERROR_CODES.INTERNAL_SERVER_ERROR.code,
           ERROR_CODES.INTERNAL_SERVER_ERROR.message,
-          "Failed to update credits"
+          "Failed to update AI usage"
         )
       }
       return mapUserToUserResponse(updatedUser)
-    
+    }
+
+    async incrementAiUsage(userId: string): Promise<UserPublicProps | null> {
+      const user = await UserRepository.findById(userId);
+      if(!user){
+        throw new AppError(
+          ERROR_CODES.NOT_FOUND.httpStatus,
+          ERROR_CODES.NOT_FOUND.code,
+          ERROR_CODES.NOT_FOUND.message,
+          "User not found"
+        )
+      }
+      
+      const currentUsage = user.aiUsage;
+      if (currentUsage >= 100) {
+        throw new AppError(
+          403,
+          'AI_LIMIT_REACHED',
+          'Weekly AI usage limit reached. Please wait for reset.',
+          'Weekly AI usage limit reached. Please wait for reset.'
+        );
+      }
+      
+      let nextUsage = 100;
+      if (currentUsage === 0) {
+        nextUsage = 34;
+      } else if (currentUsage === 34) {
+        nextUsage = 67;
+      }
+      
+      const updatedUser = await UserRepository.updateAiUsage(userId, nextUsage);
+      if(!updatedUser){
+        throw new AppError(
+          ERROR_CODES.INTERNAL_SERVER_ERROR.httpStatus,
+          ERROR_CODES.INTERNAL_SERVER_ERROR.code,
+          ERROR_CODES.INTERNAL_SERVER_ERROR.message,
+          "Failed to increment AI usage"
+        )
+      }
+      return mapUserToUserResponse(updatedUser);
     }
 
   async getUserById(id: string): Promise<UserPublicProps | null> {

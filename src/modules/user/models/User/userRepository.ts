@@ -34,25 +34,25 @@ export class UserRepository {
     const query = `
       INSERT INTO users (fname, lname, username, email, password)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
+      RETURNING id, fname, lname, username, email, ai_usage, avatar, created_at, updated_at
     `;
     const result = await pool.query(query, [fname, lname, username, email, password]);
     logger.info('User created', { userId: result.rows[0].id });
     return mapDbRowToUser(result.rows[0]);
   }
 
-  static async updateCredits(userId: string, newCredits: number): Promise<UserType | null> {
+  static async updateAiUsage(userId: string, newUsage: number): Promise<UserType | null> {
     try {
       const query = `
         UPDATE users 
-        SET credits = $2, updated_at = CURRENT_TIMESTAMP
+        SET ai_usage = $2, updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
-        RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
+        RETURNING id, fname, lname, username, email, ai_usage, avatar, created_at, updated_at
       `;
-      const result = await pool.query(query, [userId, newCredits]);
+      const result = await pool.query(query, [userId, newUsage]);
       return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
     } catch (error) {
-      logger.error('Error updating credits', { error, userId });
+      logger.error('Error updating ai_usage', { error, userId });
       return null;
     }
   }
@@ -74,7 +74,7 @@ export class UserRepository {
         UPDATE users 
         SET fname = $2, lname = $3, updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
-        RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
+        RETURNING id, fname, lname, username, email, ai_usage, avatar, created_at, updated_at
       `;
       const result = await pool.query(query, [userId, fname, lname]);
       return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
@@ -90,7 +90,7 @@ export class UserRepository {
         UPDATE users 
         SET avatar = $2, updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
-        RETURNING id, fname, lname, username, email, credits, avatar, created_at, updated_at
+        RETURNING id, fname, lname, username, email, ai_usage, avatar, created_at, updated_at
       `;
       const result = await pool.query(query, [userId, avatarUrl]);
       return result.rows[0] ? mapDbRowToUser(result.rows[0]) : null;
