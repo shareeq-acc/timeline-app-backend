@@ -1,0 +1,12 @@
+[Unit]
+Description=Deploy whatever CI last built for navigo
+Documentation=https://github.com/shareeq-acc/navigo/blob/main/docs/deploy.md
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment=PROJECT_DIR=/srv/navigo
+ExecStart=/usr/local/bin/navigo-update
+# A deploy that hangs must not block the next one forever.
+TimeoutStartSec=900

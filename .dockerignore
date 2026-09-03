@@ -1,0 +1,19 @@
+# Keep secrets and bulk out of the build context. Anything copied into an image
+# is readable by anyone who can pull that image.
+.env
+.env.*
+!.env.example
+
+node_modules
+dist
+coverage
+
+.git
+.gitignore
+.vscode
+*.md
+!README.md
+
+*.log
+src/__test__
+jest.config*.ts

@@ -1,0 +1,93 @@
+# Navigo / timeline in production, both halves.
+#
+# The client and the API are separate repositories and separate images, but one
+# deployment, so one compose file runs them. It lives here because this is the
+# repository that owns the database.
+#
+# Nothing publishes a port. The shared Caddy routes `navigo.shareeq.xyz` to
+# these containers by name over the `edge` network:
+#
+#     /api/*     -> navigo-server:3000
+#     everything -> navigo-client:3000
+#
+# One hostname for both halves, deliberately. The login is a cookie, and a
+# browser only returns a cookie to the origin it came from — putting the API on
+# a separate subdomain needs cross-origin cookie settings that fail quietly in
+# Safari and in private windows.
+#
+#   docker compose -f docker-compose.prod.yml up -d
+
+name: navigo
+
+services:
+  client:
+    # Built by CI in the client repository. The API URL is compiled into this
+    # image, so an image is specific to the hostname it was built for.
+    image: ${CLIENT_IMAGE:-ghcr.io/shareeq-acc/navigo-client:main}
+    container_name: navigo-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    networks:
+      - default
+      - edge
+    mem_limit: 256m
+
+  server:
+    image: ${SERVER_IMAGE:-ghcr.io/shareeq-acc/navigo-server:main}
+    container_name: navigo-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # The app connects with a single connection string; the DB_* variables in
+      # the code are a commented-out alternative in shared/config/db.ts.
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      # Same origin as the front end, so this is belt and braces: with one
+      # hostname there is no cross-origin request left to allow.
+      CLIENT_URL: ${PUBLIC_URL:-https://navigo.shareeq.xyz}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET in .env}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      HF_ACCESS_TOKEN: ${HF_ACCESS_TOKEN}
+      HF_MODEL: ${HF_MODEL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+      - edge
+    mem_limit: 384m
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:?set DB_USER in .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: ${DB_NAME:?set DB_NAME in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # No published port. The dev compose publishes 5432, which on a shared
+    # server is both an open database and a collision with the two other
+    # projects that want that number.
+    mem_limit: 384m
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+  # `docker network create edge`, once, on the server.
+  edge:
+    external: true

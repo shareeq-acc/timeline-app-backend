@@ -1,0 +1,16 @@
+{
+  // Production build only. The main tsconfig deliberately includes the tests
+  // and the jest configs, which is right for editing and for `jest`, but wrong
+  // for an image: compiling them ships test helpers to production and makes
+  // the build fail if a spec's fixtures are not in the build context.
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/__test__",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "jest.config.ts",
+    "jest.config.unit.ts"
+  ]
+}
